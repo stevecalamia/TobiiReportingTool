@@ -22,6 +22,7 @@ namespace TobiiReportingTool
             HeatMap,
             AOIs,
             AOIsWithNumbers,
+            Beeswarm,
         };
 
         public Study Study { get; set; }
@@ -82,6 +83,9 @@ namespace TobiiReportingTool
                 activeCell = insertImage(ImageTypes.HeatMap, stimulus, _stimulusWorksheet, activeCell);
                 activeCell = _stimulusWorksheet.Cells[activeCell.Row + 2, activeCell.Column];
                 activeCell = insertImage(ImageTypes.AOIs, stimulus, _stimulusWorksheet, activeCell);
+                activeCell = _stimulusWorksheet.Cells[activeCell.Row + 2, activeCell.Column];
+                activeCell = insertImage(ImageTypes.Beeswarm, stimulus, _stimulusWorksheet, activeCell);
+
             }
             SaveWorkbook();
             ReportWorkbook.Close();
@@ -120,10 +124,15 @@ namespace TobiiReportingTool
                     catch
                     {
                         continue;
-                    }
+                    } 
                 }
             }
-            
+            DialogResult r = MessageBox.Show("Report Complete! Would you like to open it now?", "Success!", MessageBoxButtons.YesNo);
+            if (r == DialogResult.Yes)
+            {
+                Excel.Application app = new Excel.Application();
+                app.Visible = true;
+                Excel.Workbooks wbs = app.Workbooks;                wbs.Open(Study.DeckFolderPath + "\\Report.xls");            }            
         }
 
         private void generateValidityReport()
@@ -400,6 +409,9 @@ namespace TobiiReportingTool
                     break;
                 case ImageTypes.HeatMap:
                     bm = new Bitmap(stim.HeatmapFileName);
+                    break;
+                case ImageTypes.Beeswarm:
+                    bm = new Bitmap(stim.BeeswarmsFileName);
                     break;
                 default:
                     bm = new Bitmap(640,480);

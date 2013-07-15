@@ -36,6 +36,13 @@ namespace TobiiReportingTool
                 return study.ImageFolderPath + "/AOIs/" + name + ".jpg";
             }
         }
+        public string BeeswarmsFileName 
+        {
+            get
+            {
+                return study.ImageFolderPath + "/Beeswarms/" + name + ".jpg";
+            }
+        }
         public string AOIwLabelsFileName { get; set; }
         public string RecordingDates { 
             get {
