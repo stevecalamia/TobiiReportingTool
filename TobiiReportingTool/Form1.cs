@@ -117,6 +117,8 @@ namespace TobiiReportingTool
 
             AprilONeil.GenerateReports();
 
+            AprilONeil.Dispose();
+
         }
 
         private void saveThreshold_btn_Click(object sender, EventArgs e)

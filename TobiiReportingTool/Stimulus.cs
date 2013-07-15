@@ -22,6 +22,21 @@ namespace TobiiReportingTool
 
         public string Name { get { return name; } }
         public string FileName { get; set; }
+        public string HeatmapFileName
+        {
+            get
+            {
+                return study.ImageFolderPath + "/Heatmaps/" + name + ".jpg";
+            }
+        }
+        public string AOIsFileName 
+        {
+            get
+            {
+                return study.ImageFolderPath + "/AOIs/" + name + ".jpg";
+            }
+        }
+        public string AOIwLabelsFileName { get; set; }
         public string RecordingDates { 
             get {
                 string _rtn = "";

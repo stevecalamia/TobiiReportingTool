@@ -1,9 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using Excel = Microsoft.Office.Interop.Excel;
+using Microsoft.Office.Core;
 
 namespace TobiiReportingTool
 {
@@ -13,6 +18,11 @@ namespace TobiiReportingTool
         private Excel.Workbook ReportWorkbook;
         private Excel.Sheets ReportWorksheets;
         private Excel.Worksheet ValidityWorksheet;
+        enum ImageTypes {
+            HeatMap,
+            AOIs,
+            AOIsWithNumbers,
+        };
 
         public Study Study { get; set; }
         public string ReportGenerationDate { get; private set; }
@@ -26,10 +36,11 @@ namespace TobiiReportingTool
             Study = aStudy;
 
             ExcelApp = new Excel.Application();
-            ExcelApp.Visible = true;
+            ExcelApp.Visible = false;
             ExcelApp.DisplayAlerts = false;
             ExcelApp.SheetsInNewWorkbook = 1;
-            ReportWorkbook = ExcelApp.Workbooks.Add();
+            Excel.Workbooks wbs = ExcelApp.Workbooks;
+            ReportWorkbook = wbs.Add();
             ReportWorksheets = ReportWorkbook.Worksheets;
 
             ReportGenerationDate = DateTime.Now.ToString("M/d/yyyy HH:mm");
@@ -65,20 +76,54 @@ namespace TobiiReportingTool
 
                 // Finalize Stimuls Report Worksheet
                 _stimulusWorksheet.Range["A1:B1"].Columns.AutoFit();
+
+                // Add Images
+                activeCell = _stimulusWorksheet.Cells[5, 2 + stimulus.AOIs.Count + 4];
+                activeCell = insertImage(ImageTypes.HeatMap, stimulus, _stimulusWorksheet, activeCell);
+                activeCell = _stimulusWorksheet.Cells[activeCell.Row + 2, activeCell.Column];
+                activeCell = insertImage(ImageTypes.AOIs, stimulus, _stimulusWorksheet, activeCell);
             }
             SaveWorkbook();
+            ReportWorkbook.Close();
         }
 
         public void SaveWorkbook()
         {
             // TODO: REally need to get a trycatch in here in case the file is already open.
-            ReportWorkbook.SaveAs(
-                Study.DeckFolderPath + "\\Report.xls", 
-                Excel.XlFileFormat.xlWorkbookNormal, 
-                Type.Missing, Type.Missing, Type.Missing, Type.Missing, 
-                Excel.XlSaveAsAccessMode.xlNoChange, 
-                Excel.XlSaveConflictResolution.xlLocalSessionChanges,
-                false, Type.Missing, Type.Missing, Type.Missing);
+            try
+            {
+                ReportWorkbook.SaveAs(
+                    Study.DeckFolderPath + "\\Report.xls", 
+                    Excel.XlFileFormat.xlWorkbookNormal, 
+                    Type.Missing, Type.Missing, Type.Missing, Type.Missing, 
+                    Excel.XlSaveAsAccessMode.xlNoChange, 
+                    Excel.XlSaveConflictResolution.xlLocalSessionChanges,
+                    false, Type.Missing, Type.Missing, Type.Missing);
+            }
+            catch (System.Runtime.InteropServices.COMException e)
+            {
+                string m = Study.DeckFolderPath + "\\Report.xls is in use. Please close the Report so that we can write to the file.";
+                string cap = "Close Report.xls";
+
+                while (MessageBox.Show(m,cap,MessageBoxButtons.RetryCancel) == DialogResult.Retry)
+                {
+                    try
+                    {
+                        ReportWorkbook.SaveAs(
+                            Study.DeckFolderPath + "\\Report.xls",
+                            Excel.XlFileFormat.xlWorkbookNormal,
+                            Type.Missing, Type.Missing, Type.Missing, Type.Missing,
+                            Excel.XlSaveAsAccessMode.xlNoChange,
+                            Excel.XlSaveConflictResolution.xlLocalSessionChanges,
+                            false, Type.Missing, Type.Missing, Type.Missing);
+                    }
+                    catch
+                    {
+                        continue;
+                    }
+                }
+            }
+            
         }
 
         private void generateValidityReport()
@@ -144,6 +189,7 @@ namespace TobiiReportingTool
         }
 
         private void runReport(string reportName, Stimulus stim, Excel.Worksheet ws, int topRow, int leftCol = 2)
+            //stub to abstract out the reporting mechamism
         {
             insertReportHeader(ws, topRow, leftCol, stim, reportName); 
 
@@ -341,6 +387,57 @@ namespace TobiiReportingTool
             return activeCell;
         }
 
+        // Insert Images
+        private Excel.Range insertImage(ImageTypes imageType, Stimulus stim, Excel.Worksheet ws, Excel.Range activeCell)
+        {
+            int newWidth = 640;
+            int newHeight = 480;
+            Bitmap bm;
+            switch (imageType)
+            {
+                case ImageTypes.AOIs:
+                    bm = new Bitmap(stim.AOIsFileName);
+                    break;
+                case ImageTypes.HeatMap:
+                    bm = new Bitmap(stim.HeatmapFileName);
+                    break;
+                default:
+                    bm = new Bitmap(640,480);
+                    break;
+            }
+            if (bm.Height > bm.Width) // Portrait Orientation
+            {
+                newWidth = (int)(newHeight * ((float)bm.Width / (float)bm.Height));
+
+            }
+            else if (bm.Width > bm.Height) // Landscape Orientation
+            {
+                newHeight = (int)(newWidth * ((float)bm.Height / (float)bm.Width));
+            }
+            else  // Square Orientation
+            {
+                newWidth = newHeight;
+            }
+            // Convert other formats (including CMYK) to RGB.
+            Bitmap newImage = new Bitmap(newWidth, newHeight, PixelFormat.Format24bppRgb);
+
+            // Draws the image in the specified size with quality mode set to HighQuality
+            using (Graphics graphics = Graphics.FromImage(newImage))
+            {
+                graphics.CompositingQuality = CompositingQuality.HighQuality;
+                graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                graphics.SmoothingMode = SmoothingMode.HighQuality;
+                graphics.DrawImage(bm, 0, 0, newWidth, newHeight);
+            }
+
+            newImage.Save(stim.HeatmapFileName + "_copy");
+            ws.Shapes.AddPicture(stim.HeatmapFileName + "_copy", Microsoft.Office.Core.MsoTriState.msoFalse, MsoTriState.msoCTrue, activeCell.Left, activeCell.Top, newWidth, newHeight);
+
+            return ws.Cells[activeCell.Row + 32, activeCell.Column];
+        }
+
+
+
         // Helper Functions 
         private void insertHeaderInfo(Excel.Worksheet ws)
         {
@@ -492,5 +589,13 @@ namespace TobiiReportingTool
             return returnCell;
         }
         
+        public void Dispose()
+        {
+            ValidityWorksheet = null;
+            ReportWorksheets = null;
+            ReportWorkbook = null;
+            ExcelApp = null;
+            GC.Collect();
+        }
     }
 }
