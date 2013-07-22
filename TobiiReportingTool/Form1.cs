@@ -8,18 +8,22 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Xml;
+using System.Xml.Serialization;
 using Excel = Microsoft.Office.Interop.Excel;
 
 namespace TobiiReportingTool
 {
     public partial class Form1 : Form
     {
-        public Study study { get; set; }
+        public Dictionary<string,dynamic> Settings = new Dictionary<string,dynamic>();
+        public Study Study { get; set; }
+        private dynamic filename;
         public Form1()
         {
             InitializeComponent();
             deleteBtn_tooltip.SetToolTip(this.clearTextBox_btn1, "Clear Folder Path");
-            study = new Study();
+            Study = new Study();
             UpdateThreshold((int)threshold_upDown.Value);
         }
 
@@ -63,7 +67,7 @@ namespace TobiiReportingTool
         }
         private void enableGenerateReportButton()
         {
-            if (study.ValidateDeckFolder(path_textBox.Text))
+            if (Study.ValidateDeckFolder(path_textBox.Text))
             {
                 genReport_btn.Enabled = true;
             }
@@ -82,12 +86,12 @@ namespace TobiiReportingTool
         {
             threshold_upDown.Value = (decimal)thresholdInt;
             threshold_trackBar.Value = thresholdInt;
-            study.Threshold = thresholdInt;
+            Study.Threshold = thresholdInt;
         }
 
         public void ParseData()
         {
-            this.study.Threshold = Convert.ToInt32(threshold_upDown.Value);
+            this.Study.Threshold = Convert.ToInt32(threshold_upDown.Value);
             String basePath = path_textBox.Text;
             String exportFile = basePath + "\\DataExport.tsv";
 
@@ -110,10 +114,10 @@ namespace TobiiReportingTool
         {
 
             // Load up Study with data
-            study.LoadData();
-            Console.WriteLine("Threshold set to: "+study.Threshold.ToString());
+            Study.LoadData();
+            Console.WriteLine("Threshold set to: "+Study.Threshold.ToString());
 
-            Reporter AprilONeil = new Reporter(study);
+            Reporter AprilONeil = new Reporter(Study);
 
             AprilONeil.GenerateReports();
 
@@ -123,6 +127,82 @@ namespace TobiiReportingTool
 
         private void saveThreshold_btn_Click(object sender, EventArgs e)
         {
+            SaveSettings("Threshold", threshold_trackBar.Value);
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            LoadSettings();
+        }
+
+        private void SaveSettings(string setting, dynamic value)
+        {
+            if (Settings.ContainsKey(setting))
+            {
+                Settings[setting] = value;
+            }
+            else
+            {
+                Settings.Add(setting, value);
+            }
+            try {
+                FileStream fsSource = new FileStream(filename, FileMode.Open, FileAccess.Read);
+                XmlSerializer serializer = new XmlSerializer(typeof(SettingsItem[]), new XmlRootAttribute() { ElementName = "Settings"});
+                serializer.Serialize(fsSource, Settings.Select(kv => new SettingsItem() { name = kv.Key, value = kv.Value }).ToArray());
+            }
+            catch (FileNotFoundException ioEx)
+            {
+                MessageBox.Show(@"
+We're sorry, but the settings file was not found. This may be a program error.
+Please contact support@tobii.com, and send them this information:
+" + ioEx.Message, "Settings File Not Found", MessageBoxButtons.OK, MessageBoxIcon.Error, MessageBoxDefaultButton.Button1);
+            }
+            catch (InvalidOperationException ioEx)
+            {
+                Console.WriteLine(ioEx.Message);
+                Console.WriteLine(ioEx.StackTrace);
+                Console.WriteLine(ioEx.InnerException);
+            }
+
+        }
+        private void LoadSettings()
+        {
+            filename = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "TRTsettings.xml");
+            if (File.Exists(filename))
+            {
+                try
+                {
+                    FileStream fsSource = new FileStream(filename, FileMode.Open, FileAccess.Read);
+                    XmlSerializer serializer = new XmlSerializer(typeof(SettingsItem[]), new XmlRootAttribute() { ElementName = "Settings" });
+                    Settings = ((SettingsItem[])serializer.Deserialize(fsSource)).ToDictionary(i => i.name, i => i.value);
+
+                    if (Settings.ContainsKey("ResourceFolder"))
+                    {
+                        path_textBox.Text = Settings["ResourceFolder"];
+                    }
+
+                    if (Settings.ContainsKey("Threshold"))
+                    {
+                        UpdateThreshold(Convert.ToInt32(Settings["Threshold"]));
+                    }
+
+                }
+                catch (FileNotFoundException ioEx)
+                {
+                    string msg = @"
+We're sorry, but the settings file was not found.
+If this is the first time you're seeing this message, try saving your Threshold.
+Otherwise, this may be a program error.  
+If so, please contact support@tobii.com, and send them this information:
+
+";
+                    MessageBox.Show(msg + ioEx.Message + "\n" + ioEx.StackTrace, "Settings File Not Found", MessageBoxButtons.OK, MessageBoxIcon.Error, MessageBoxDefaultButton.Button1);
+                }
+            }
+            else
+            {
+                File.Create(filename).Dispose();
+            }
 
         }
 

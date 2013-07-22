@@ -41,6 +41,7 @@
             this.clearTextBox_btn1 = new System.Windows.Forms.Button();
             this.selectFolder_btn = new System.Windows.Forms.Button();
             this.label3 = new System.Windows.Forms.Label();
+            this.beta_label = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.threshold_trackBar)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.threshold_upDown)).BeginInit();
@@ -127,9 +128,9 @@
             this.pictureBox1.Image = global::TobiiReportingTool.Properties.Resources.TobiiLogo;
             this.pictureBox1.ImeMode = System.Windows.Forms.ImeMode.NoControl;
             this.pictureBox1.InitialImage = global::TobiiReportingTool.Properties.Resources.TobiiLogo;
-            this.pictureBox1.Location = new System.Drawing.Point(12, 13);
+            this.pictureBox1.Location = new System.Drawing.Point(12, 1);
             this.pictureBox1.Name = "pictureBox1";
-            this.pictureBox1.Size = new System.Drawing.Size(205, 87);
+            this.pictureBox1.Size = new System.Drawing.Size(205, 77);
             this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pictureBox1.TabIndex = 8;
             this.pictureBox1.TabStop = false;
@@ -172,14 +173,29 @@
             this.label3.TabIndex = 9;
             this.label3.Text = "Participant Validity Threshold";
             // 
+            // beta_label
+            // 
+            this.beta_label.AutoSize = true;
+            this.beta_label.BackColor = System.Drawing.Color.Transparent;
+            this.beta_label.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.beta_label.Font = new System.Drawing.Font("Consolas", 12F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Italic))), System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.beta_label.ForeColor = System.Drawing.Color.DarkRed;
+            this.beta_label.Location = new System.Drawing.Point(174, 93);
+            this.beta_label.Name = "beta_label";
+            this.beta_label.Size = new System.Drawing.Size(45, 19);
+            this.beta_label.TabIndex = 10;
+            this.beta_label.Text = "beta";
+            // 
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(9, 87);
+            this.label1.Font = new System.Drawing.Font("Neuropol", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label1.ForeColor = System.Drawing.Color.SteelBlue;
+            this.label1.Location = new System.Drawing.Point(9, 73);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(103, 13);
-            this.label1.TabIndex = 2;
-            this.label1.Text = "Validation Threshold";
+            this.label1.Size = new System.Drawing.Size(213, 25);
+            this.label1.TabIndex = 11;
+            this.label1.Text = "Reporting Tool";
             // 
             // Form1
             // 
@@ -188,9 +204,10 @@
             this.BackColor = System.Drawing.SystemColors.ControlLightLight;
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
             this.ClientSize = new System.Drawing.Size(231, 416);
+            this.Controls.Add(this.label1);
+            this.Controls.Add(this.label3);
             this.Controls.Add(this.threshold_upDown);
             this.Controls.Add(this.label2);
-            this.Controls.Add(this.label3);
             this.Controls.Add(this.pictureBox1);
             this.Controls.Add(this.saveThreshold_btn);
             this.Controls.Add(this.threshold_trackBar);
@@ -198,12 +215,13 @@
             this.Controls.Add(this.selectFolder_btn);
             this.Controls.Add(this.path_textBox);
             this.Controls.Add(this.genReport_btn);
-            this.Controls.Add(this.label1);
+            this.Controls.Add(this.beta_label);
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "Form1";
             this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
             this.Text = "Tobii Reporting Tool";
+            this.Load += new System.EventHandler(this.Form1_Load);
             ((System.ComponentModel.ISupportInitialize)(this.threshold_trackBar)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.threshold_upDown)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
@@ -226,6 +244,7 @@
         private System.Windows.Forms.NumericUpDown threshold_upDown;
         private System.Windows.Forms.PictureBox pictureBox1;
         private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Label beta_label;
         private System.Windows.Forms.Label label1;
     }
 }
