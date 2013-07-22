@@ -415,7 +415,7 @@ namespace TobiiReportingTool
                     bm = new Bitmap(stim.BeeswarmsFileName);
                     break;
                 default:
-                    bm = new Bitmap(640,480);
+                    bm = new Bitmap(newWidth,newHeight);
                     break;
             }
             if (bm.Height > bm.Width) // Portrait Orientation
