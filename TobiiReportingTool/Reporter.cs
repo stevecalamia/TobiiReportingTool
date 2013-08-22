@@ -84,8 +84,8 @@ namespace TobiiReportingTool
                 activeCell = insertImage(ImageTypes.HeatMap, stimulus, _stimulusWorksheet, activeCell);
                 activeCell = _stimulusWorksheet.Cells[activeCell.Row + 2, activeCell.Column];
                 activeCell = insertImage(ImageTypes.AOIs, stimulus, _stimulusWorksheet, activeCell);
-                activeCell = _stimulusWorksheet.Cells[activeCell.Row + 2, activeCell.Column];
-                activeCell = insertImage(ImageTypes.Beeswarm, stimulus, _stimulusWorksheet, activeCell);
+                //activeCell = _stimulusWorksheet.Cells[activeCell.Row + 2, activeCell.Column];
+                //activeCell = insertImage(ImageTypes.Beeswarm, stimulus, _stimulusWorksheet, activeCell);
 
             }
             SaveWorkbook();
@@ -133,7 +133,10 @@ namespace TobiiReportingTool
             {
                 Excel.Application app = new Excel.Application();
                 app.Visible = true;
-                Excel.Workbooks wbs = app.Workbooks;                wbs.Open(Study.DeckFolderPath + "\\Report.xls");            }            
+                Excel.Workbooks wbs = app.Workbooks;
+                wbs.Open(Study.DeckFolderPath + "\\Report.xls");
+            }
+            
         }
 
         private void generateValidityReport()
